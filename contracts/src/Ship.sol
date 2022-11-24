@@ -26,8 +26,21 @@ contract Ship {
     map[x][y] = 1;
   }
 
-  function fire() public pure returns (uint, uint){
-    return (0,0);
+  function fire() public returns (uint, uint){
+    uint get_h = random() % h;
+    uint get_w = random() % w;
+    bool found = true;
+
+    while(found){
+      get_h = random() % h;
+      get_w = random() % w;
+
+      if(map[get_h][get_w] == 0){
+        found = false;
+      }
+    }
+    map[get_h][get_w] = 1;
+    return (get_h,get_w);
   }
 
   function place(uint width, uint height) public returns (uint, uint){
