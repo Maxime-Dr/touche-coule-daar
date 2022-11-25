@@ -36,6 +36,36 @@ contract Main {
     emit Size(game.width, game.height);
   }
 
+  /*
+  Function to communicate with allies ships in order to 
+  get their knowledgments (their maps)
+  */
+  function communication(uint i) private{
+    Ship ship = Ship(ships[i]); // get the ship at the index i
+    address owner = owners[i]; // get the owner of this ship
+
+    // search allies of this ship --> same owner
+    for (uint j = 1; j < index; j++) {
+
+      // if we find an allie
+      if (i != j && owners[j] == owner){
+        console.log("Communication : %s <--> %s (allie)",i,j);
+        Ship allie = Ship(ships[j]); // get the allie ship
+        
+        // get information of all his map
+        for (uint x; x<game.height; x+=1){
+          for (uint y; y<game.width; y+=1){
+            uint value = allie.getValue(x,y); // get value for the position (x,y)
+            if (value > 0){
+              console.log("Allie informs : (%s,%s)=%s",x,y,value);
+            }
+            ship.communicate(x,y,value); // communicate --> update ship's map
+          }
+        }
+      }
+    }
+  }
+
   function register() external {
     address ship = address(new Ship(msg.sender)); // get address of the new ship
     require(count[msg.sender] < 2, 'Only two ships');
@@ -56,10 +86,14 @@ contract Main {
     bool[] memory touched = new bool[](index);
     for (uint i = 1; i < index; i++) {
       if (game.xs[i] < 0) continue;
+      communication(i); // the ship at index i communicate
       Ship ship = Ship(ships[i]);
+      //ship.printMap();
+      ship.checkReset(i);
       (uint x, uint y) = ship.fire();
       console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
+        console.log("TOUCHE");
         touched[game.board[x][y]] = true;
       }
     }
