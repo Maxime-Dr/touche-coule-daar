@@ -19,6 +19,7 @@ contract Main {
   mapping(uint => address) private ships;
   mapping(uint => address) private owners;
   mapping(address => uint) private count;
+  mapping(uint => uint) private turns; //store the autorization to change positions
 
   event Size(uint width, uint height);
   event Touched(uint ship, uint x, uint y);
@@ -72,6 +73,7 @@ contract Main {
     require(!used[ship], 'Ship alread on the board');
     require(index <= game.height * game.width, 'Too much ship on board');
     count[msg.sender] += 1;
+    turns[index] = 5;
     ships[index] = ship;
     owners[index] = msg.sender;
     (uint x, uint y) = placeShip(index);
@@ -83,9 +85,11 @@ contract Main {
   }
 
   function turn() external {
+
     bool[] memory touched = new bool[](index);
     for (uint i = 1; i < index; i++) {
       if (game.xs[i] < 0) continue;
+      turns[i] = turns[i] - 1;
       communication(i); // the ship at index i communicate
       Ship ship = Ship(ships[i]);
       //ship.printMap();
@@ -130,5 +134,29 @@ contract Main {
   function createShip() external returns (address){
     Ship ship = new Ship(msg.sender);
     return address(ship);
+  }
+
+  function changePosition() external{
+    for (uint i = 0; i < index; i++) {
+      if (turns[i] <= 0 && owners[i] == msg.sender){
+        turns[i] = 5;
+        Ship ship = Ship(ships[i]);
+        (uint x, uint y) = ship.place(game.width, game.height);
+        bool invalid = true;
+        while (invalid) {
+          if (game.board[x][y] == 0) {
+            game.board[x][y] = i;
+            game.xs[i] = int(x);
+            game.ys[i] = int(y);
+            invalid = false;
+          } else {
+            uint newPlace = (x * game.width) + y + 1;
+            x = newPlace % game.width;
+            y = newPlace / game.width % game.height;
+          }
+        }
+        ship.newPlace(x, y);
+      }
+    }
   }
 }

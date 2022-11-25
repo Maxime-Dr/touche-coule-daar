@@ -135,5 +135,17 @@ contract Ship {
       reset();
     }
   }
+
+  function newPlace(uint n_x, uint n_y) public{
+    for (uint x; x<h; x+=1){
+      for (uint y; y<w; y+=1){
+        if (map[x][y] == 1){
+          map[x][y] = 0;
+        }
+      }
+    }
+    reset();
+    map[n_x][n_y] = 1;
+  }
 }
 
