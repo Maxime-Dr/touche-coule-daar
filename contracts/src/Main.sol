@@ -50,7 +50,7 @@ contract Main {
 
       // if we find an allie
       if (i != j && owners[j] == owner){
-        console.log("Communication : %s <--> %s (allie)",i,j);
+        // console.log("Communication : %s <--> %s (allie)",i,j);
         Ship allie = Ship(ships[j]); // get the allie ship
         
         // get information of all his map
@@ -58,7 +58,7 @@ contract Main {
           for (uint y; y<game.width; y+=1){
             uint value = allie.getValue(x,y); // get value for the position (x,y)
             if (value > 0){
-              console.log("Allie informs : (%s,%s)=%s",x,y,value);
+              // console.log("Allie informs : (%s,%s)=%s",x,y,value);
             }
             ship.communicate(x,y,value); // communicate --> update ship's map
           }
@@ -68,7 +68,7 @@ contract Main {
   }
 
   function register() external {
-    address ship = address(new Ship(msg.sender)); // get address of the new ship
+    address ship = address(new Ship(msg.sender, index)); // get address of the new ship
     require(count[msg.sender] < 2, 'Only two ships');
     require(!used[ship], 'Ship alread on the board');
     require(index <= game.height * game.width, 'Too much ship on board');
@@ -90,10 +90,10 @@ contract Main {
     for (uint i = 1; i < index; i++) {
       if (game.xs[i] < 0) continue;
       turns[i] = turns[i] - 1;
-      communication(i); // the ship at index i communicate
+      // communication(i); // the ship at index i communicate
       Ship ship = Ship(ships[i]);
       //ship.printMap();
-      ship.checkReset(i);
+      // ship.checkReset(i);
       (uint x, uint y) = ship.fire();
       console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
@@ -131,10 +131,10 @@ contract Main {
   /* 
   function to create a ship and returns address of this new one
   */
-  function createShip() external returns (address){
-    Ship ship = new Ship(msg.sender);
-    return address(ship);
-  }
+  // function createShip() external returns (address){
+  //   Ship ship = new Ship(msg.sender, index);
+  //   return address(ship);
+  // }
 
   function changePosition() external{
     for (uint i = 0; i < index; i++) {

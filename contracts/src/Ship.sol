@@ -8,10 +8,12 @@ contract Ship {
   mapping(uint => mapping(uint => uint)) private map; // 0 : no informations ; 1 : my ship ; target fired : miss ;
   uint private w;
   uint private h;
+  uint private shipId = 0;
   uint private counter = 0;
 
-  constructor(address o){
+  constructor(address o, uint idx){
     owner = o;
+    shipId = idx;
   }
 
   // todo maybe create a set a positions available et get a random value from this set ??
@@ -20,8 +22,8 @@ contract Ship {
   Function to return a random integer
   */
   function random() private returns (uint){
-    counter += 1;
-    return uint(keccak256(abi.encode(owner,counter,block.timestamp)));
+    counter+=1024;
+    return uint(keccak256(abi.encode(owner,counter*shipId)));
   }
 
   /*
@@ -59,16 +61,16 @@ contract Ship {
   Return this position
   */
   function fire() public returns (uint, uint){
-    uint get_h = random() % h;
-    uint get_w = random() % w;
-    bool found = true;
+    uint get_h;
+    uint get_w;
+    bool isAlreadyTargeted = true;
 
-    while(found){
+    while(isAlreadyTargeted){
       get_h = random() % h;
       get_w = random() % w;
 
       if(map[get_h][get_w] == 0){
-        found = false;
+        isAlreadyTargeted = false;
       }
     }
     map[get_h][get_w] = 2;
