@@ -28,6 +28,7 @@ contract Main {
     uint x,
     uint y
   );
+  event Fired(uint ship, uint x, uint y);
 
   constructor() {
     game.width = 50;
@@ -57,6 +58,7 @@ contract Main {
       if (game.xs[i] < 0) continue;
       Ship ship = Ship(ships[i]);
       (uint x, uint y) = ship.fire();
+      console.log("id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
         touched[game.board[x][y]] = true;
       }
