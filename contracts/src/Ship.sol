@@ -4,11 +4,11 @@ pragma solidity ^0.8;
 import 'hardhat/console.sol';
 
 contract Ship {
-  address owner;
-  mapping(uint => mapping(uint => uint)) map; // 0 : no informations ; 1 : my ship ; target fired : miss ;
-  uint w;
-  uint h;
-  uint counter = 0;
+  address private owner;
+  mapping(uint => mapping(uint => uint)) private map; // 0 : no informations ; 1 : my ship ; target fired : miss ;
+  uint private w;
+  uint private h;
+  uint private counter = 0;
 
   constructor(address o){
     owner = o;
@@ -21,7 +21,7 @@ contract Ship {
   */
   function random() private returns (uint){
     counter += 1;
-    return uint(keccak256(abi.encode(counter)));
+    return uint(keccak256(abi.encode(owner,counter,block.timestamp)));
   }
 
   /*
@@ -31,7 +31,7 @@ contract Ship {
   */
   function communicate(uint x, uint y, uint value) public{
     if (value == 1){
-      map[x][y] == 3;
+      map[x][y] = 3;
     }
     if (value == 2 && map[x][y] == 0){
       map[x][y] = 2;
@@ -98,6 +98,41 @@ contract Ship {
     }
 
     return (get_h,get_w);
+  }
+
+  function printMap() public view{
+    for (uint x; x<h; x+=1){
+      for (uint y; y<w; y+=1){
+        console.log("(%s,%s)=%s",x,y,map[x][y]);
+      }
+    }
+  }
+
+  function haveToReset() private view returns (bool){
+    for (uint x; x<h; x+=1){
+      for (uint y; y<w; y+=1){
+        if (map[x][y] == 0){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function reset() private{
+    for (uint x; x<h; x+=1){
+      for (uint y; y<w; y+=1){
+        if (map[x][y] != 1){
+          map[x][y] = 0;
+        }
+      }
+    }
+  }
+
+  function checkReset() public{
+    if (haveToReset()){
+      reset();
+    }
   }
 }
 

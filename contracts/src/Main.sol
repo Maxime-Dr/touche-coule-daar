@@ -53,8 +53,8 @@ contract Main {
         Ship allie = Ship(ships[j]); // get the allie ship
         
         // get information of all his map
-        for (uint x; x<game.width; x+=1){
-          for (uint y; y<game.height; y+=1){
+        for (uint x; x<game.height; x+=1){
+          for (uint y; y<game.width; y+=1){
             uint value = allie.getValue(x,y); // get value for the position (x,y)
             if (value > 0){
               console.log("Allie informs : (%s,%s)=%s",x,y,value);
@@ -85,12 +85,15 @@ contract Main {
   function turn() external {
     bool[] memory touched = new bool[](index);
     for (uint i = 1; i < index; i++) {
-      communication(i); // the ship at index i communicate
       if (game.xs[i] < 0) continue;
+      communication(i); // the ship at index i communicate
       Ship ship = Ship(ships[i]);
+      //ship.printMap();
+      ship.checkReset();
       (uint x, uint y) = ship.fire();
       console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
+        console.log("TOUCHE");
         touched[game.board[x][y]] = true;
       }
     }
