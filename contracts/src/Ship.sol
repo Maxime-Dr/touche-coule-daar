@@ -129,8 +129,9 @@ contract Ship {
     }
   }
 
-  function checkReset() public{
+  function checkReset(uint index) public{
     if (haveToReset()){
+      console.log("ship %s have to reset",index);
       reset();
     }
   }

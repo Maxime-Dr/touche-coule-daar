@@ -89,7 +89,7 @@ contract Main {
       communication(i); // the ship at index i communicate
       Ship ship = Ship(ships[i]);
       //ship.printMap();
-      ship.checkReset();
+      ship.checkReset(i);
       (uint x, uint y) = ship.fire();
       console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
