@@ -37,7 +37,7 @@ contract Main {
   }
 
   function register() external {
-    address ship = address(new Ship(msg.sender));
+    address ship = address(new Ship(msg.sender)); // get address of the new ship
     require(count[msg.sender] < 2, 'Only two ships');
     require(!used[ship], 'Ship alread on the board');
     require(index <= game.height * game.width, 'Too much ship on board');
@@ -45,6 +45,7 @@ contract Main {
     ships[index] = ship;
     owners[index] = msg.sender;
     (uint x, uint y) = placeShip(index);
+    console.log("Register --> id:%s x:%s, y%s",index,x,y);
     Ship(ships[index]).update(x, y);
     emit Registered(index, msg.sender, x, y);
     used[ship] = true;
@@ -57,6 +58,7 @@ contract Main {
       if (game.xs[i] < 0) continue;
       Ship ship = Ship(ships[i]);
       (uint x, uint y) = ship.fire();
+      console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
         touched[game.board[x][y]] = true;
       }
@@ -88,9 +90,11 @@ contract Main {
     return (x, y);
   }
   
+  /* 
+  function to create a ship and returns address of this new one
+  */
   function createShip() external returns (address){
     Ship ship = new Ship(msg.sender);
     return address(ship);
   }
-  
 }
