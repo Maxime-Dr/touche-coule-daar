@@ -24,6 +24,27 @@ contract Ship {
     return uint(keccak256(abi.encode(counter)));
   }
 
+  /*
+  Function to communicate with an allie. Indeed, we get knowlodge from this one.
+  This allie send the value of his map for the position (x,y).
+  We can update our map.
+  */
+  function communicate(uint x, uint y, uint value) public{
+    if (value == 1){
+      map[x][y] == 3;
+    }
+    if (value == 2 && map[x][y] == 0){
+      map[x][y] = 2;
+    }
+  }
+
+  /*
+  Function to share a value of our map for the position (x,y)
+  */
+  function getValue(uint x, uint y) public view returns (uint){
+    return map[x][y];
+  }
+
   /* 
   Function to update the position of the ship
   -->initial position can be impossible
@@ -59,7 +80,7 @@ contract Ship {
   have not be selected
   Return this position
   */
-  function place(uint width, uint height) public returns (uint, uint){
+    function place(uint width, uint height) public returns (uint, uint){
     w = width;
     h = height;
 
