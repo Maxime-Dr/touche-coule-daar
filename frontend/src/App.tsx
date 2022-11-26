@@ -93,6 +93,34 @@ const useBoard = (wallet: ReturnType<typeof useWallet>) => {
         })
       })
     }
+    const onMoved = (
+      ship: BigNumber,
+      prev_x: BigNumber,
+      prev_y: BigNumber,
+      owner: string,
+      x: BigNumber,
+      y: BigNumber
+    ) => {
+      console.log('onMoved')
+      setBoard(board => {
+        return board.map((prev_x_, index) => {
+          if (index !== prev_x.toNumber()) return prev_x_
+          return prev_x_.map((prev_y_, indey) => {
+            if (indey !== prev_y.toNumber()) return prev_y_
+            return null
+          })
+        })
+      })
+      setBoard(board => {
+        return board.map((x_, index) => {
+          if (index !== x.toNumber()) return x_
+          return x_.map((y_, indey) => {
+            if (indey !== y.toNumber()) return y_
+            return { owner, index: ship.toNumber() }
+          })
+        })
+      })
+    }
     const updateSize = async () => {
       const [event] = await wallet.contract.queryFilter('Size', 0)
       const width = event.args.width.toNumber()
@@ -115,16 +143,26 @@ const useBoard = (wallet: ReturnType<typeof useWallet>) => {
         onTouched(ship, x, y)
       })
     }
+    const updateMoved = async () => {
+      const movedEvent = await wallet.contract.queryFilter('Moved', 0)
+      movedEvent.forEach(event => {
+        const { ship, prev_x, prev_y, owner, x, y } = event.args
+        onMoved(ship, prev_x, prev_y, owner, x, y )
+      })
+    }
     await updateSize()
     await updateRegistered()
     await updateTouched()
+    await updateMoved()
     console.log('Registering')
     wallet.contract.on('Registered', onRegistered)
     wallet.contract.on('Touched', onTouched)
+    wallet.contract.on('Moved', onMoved)
     return () => {
       console.log('Unregistering')
       wallet.contract.off('Registered', onRegistered)
       wallet.contract.off('Touched', onTouched)
+      wallet.contract.off('Moved', onMoved)
     }
   }, [wallet])
   return board
@@ -134,6 +172,7 @@ const Buttons = ({ wallet }: { wallet: ReturnType<typeof useWallet> }) => {
   const next = () => wallet?.contract.turn()
   return (
     <div style={{ display: 'flex', gap: 5, padding: 5 }}>
+      <button onClick={() => wallet?.contract.changePosition()}>Change Position</button> 
       <button onClick={() => wallet?.contract.register()}>Register</button> 
       <button onClick={next}>Turn</button>
     </div>
