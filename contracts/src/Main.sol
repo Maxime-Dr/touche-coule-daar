@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8;
 
-import './Ship.sol';
-import 'hardhat/console.sol';
+import "./Ship.sol";
+import "hardhat/console.sol";
 
 struct Game {
   uint height;
@@ -29,6 +29,14 @@ contract Main {
     uint x,
     uint y
   );
+  event Moved(
+    uint ship, 
+    uint prev_x, 
+    uint prev_y,
+    address indexed owner,
+    uint x,
+    uint y
+  );
 
   constructor() {
     game.width = 50;
@@ -47,6 +55,8 @@ contract Main {
 
     // search allies of this ship --> same owner
     for (uint j = 1; j < index; j++) {
+      // dead allie --> useless
+      if (game.xs[j] < 0) continue;
 
       // if we find an allie
       if (i != j && owners[j] == owner){
@@ -69,11 +79,11 @@ contract Main {
 
   function register() external {
     address ship = address(new Ship(msg.sender, index)); // get address of the new ship
-    require(count[msg.sender] < 2, 'Only two ships');
-    require(!used[ship], 'Ship alread on the board');
-    require(index <= game.height * game.width, 'Too much ship on board');
+    require(count[msg.sender] < 2, "Only two ships");
+    require(!used[ship], "Ship alread on the board");
+    require(index <= game.height * game.width, "Too much ship on board");
     count[msg.sender] += 1;
-    turns[index] = 5;
+    turns[index] = 5; // a ship can change position every 5 turns
     ships[index] = ship;
     owners[index] = msg.sender;
     (uint x, uint y) = placeShip(index);
@@ -90,10 +100,10 @@ contract Main {
     for (uint i = 1; i < index; i++) {
       if (game.xs[i] < 0) continue;
       turns[i] = turns[i] - 1;
-      // communication(i); // the ship at index i communicate
+      //communication(i); // the ship at index i communicate
       Ship ship = Ship(ships[i]);
       //ship.printMap();
-      // ship.checkReset(i);
+      //ship.checkReset(i);
       (uint x, uint y) = ship.fire();
       console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       if (game.board[x][y] > 0) {
@@ -136,11 +146,38 @@ contract Main {
   //   return address(ship);
   // }
 
-  function changePosition() external{
+  /*
+  function to check if the player can change position of this ship
+  at least 1
+  Return a bool
+  */
+  function canChangePosition() private view returns (bool b){
     for (uint i = 0; i < index; i++) {
+      if (game.xs[i] < 0) continue;
       if (turns[i] <= 0 && owners[i] == msg.sender){
-        turns[i] = 5;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* 
+  function to change the position of ship of the playeer
+  */
+  function changePosition() external{
+    require(canChangePosition(),"you cannot change positions");
+    for (uint i = 0; i < index; i++) {
+      if (game.xs[i] < 0) continue;
+      
+      // find a ship which can move
+      if (turns[i] <= 0 && owners[i] == msg.sender){
+        turns[i] = 5; // reset his counter
         Ship ship = Ship(ships[i]);
+        uint prev_x = uint(game.xs[i]); // store previous valeur of x
+        uint prev_y = uint(game.ys[i]); // store previous valeur of y
+        game.board[uint(game.xs[i])][uint(game.ys[i])] = 0; // delete the position in the board
+        
+        // get a new position
         (uint x, uint y) = ship.place(game.width, game.height);
         bool invalid = true;
         while (invalid) {
@@ -155,7 +192,8 @@ contract Main {
             y = newPlace / game.width % game.height;
           }
         }
-        ship.newPlace(x, y);
+        ship.newPlace(x, y); // update the map of the ship
+        emit Moved(uint(i), prev_x, prev_y, owners[i], uint(x), uint(y)); // to update the frontend
       }
     }
   }
