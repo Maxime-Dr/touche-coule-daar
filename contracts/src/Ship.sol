@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 
 contract Ship {
   address private owner;
-  mapping(uint => mapping(uint => uint)) private map; // 0 : no informations ; 1 : my ship ; target fired : miss ;
+  mapping(uint => mapping(uint => uint)) private map; // 0 : no informations ; 1 : my ship ; 2 : target fired ; 3 : ship allies ;
   uint private w;
   uint private h;
   uint private shipId = 0;
@@ -134,6 +134,9 @@ contract Ship {
   function newPlace(uint prev_x, uint prev_y, uint n_x, uint n_y) public{
     map[prev_x][prev_y] = 0;
     //console.log("new position (%s,%s)",n_x,n_y);
+    if (map[n_x][n_y] != 0){
+      availablePosition += 1;
+    }
     map[n_x][n_y] = 1;
   }
 
@@ -158,7 +161,7 @@ contract Ship {
   */
   function checkReset(uint index) public{
     if (availablePosition == 0){
-      console.log("ship %s have to reset",index);
+      //console.log("ship %s have to reset",index);
       reset();
     }
   }
