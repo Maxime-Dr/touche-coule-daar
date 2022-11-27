@@ -113,8 +113,13 @@ contract Ship {
   */
   function communicate(uint x, uint y, uint value) public{
     
-    // the position of an allie
-    if (value == 1){
+    // the position of an allie --> already seen
+    if (value == 1 && map[x][y] > 0){
+      map[x][y] = 3;
+    }
+
+    // the position of an allie --> never seen
+    if (value == 1 && map[x][y] == 0){
       map[x][y] = 3;
       availablePosition = availablePosition - 1;
     }
