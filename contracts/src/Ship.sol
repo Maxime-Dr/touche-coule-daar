@@ -10,13 +10,14 @@ contract Ship {
   uint private h;
   uint private shipId = 0;
   uint private counter = 0;
+  uint private availablePosition = 0;
 
   constructor(address o, uint idx){
     owner = o;
     shipId = idx;
   }
 
-  // todo maybe create a set a positions available et get a random value from this set ??
+  // ----------------------- UTILS FUNCTIONS ---------------------
 
   /* 
   Function to return a random integer
@@ -27,25 +28,24 @@ contract Ship {
   }
 
   /*
-  Function to communicate with an allie. Indeed, we get knowlodge from this one.
-  This allie send the value of his map for the position (x,y).
-  We can update our map.
-  */
-  function communicate(uint x, uint y, uint value) public{
-    if (value == 1){
-      map[x][y] = 3;
-    }
-    if (value == 2 && map[x][y] == 0){
-      map[x][y] = 2;
-    }
-  }
-
-  /*
   Function to share a value of our map for the position (x,y)
   */
   function getValue(uint x, uint y) public view returns (uint){
     return map[x][y];
   }
+
+  /*
+  Method to print the map of the ship
+  */
+  function printMap() public view{
+    for (uint x; x<h; x+=1){
+      for (uint y; y<w; y+=1){
+        console.log("(%s,%s)=%s",x,y,map[x][y]);
+      }
+    }
+  }
+
+  // ----------------------- BASIS FUNCTIONS ---------------------
 
   /* 
   Function to update the position of the ship
@@ -53,6 +53,7 @@ contract Ship {
   */
   function update(uint x, uint y) public{
     map[x][y] = 1;
+    availablePosition = (w * h) - 1 ;
   }
 
   /* Function to select a position to fire, 
@@ -74,12 +75,13 @@ contract Ship {
       }
     }
     map[get_h][get_w] = 2;
+    availablePosition = availablePosition - 1;
     return (get_h,get_w);
   }
 
-  /* Function to select a position for the ship, 
-  this position is choosen randomly if this one
-  have not be selected
+  /* 
+  Function to select a position for the ship, this position is choosen randomly 
+  This one may not be selected
   Return this position
   */
     function place(uint width, uint height) public returns (uint, uint){
@@ -102,32 +104,40 @@ contract Ship {
     return (get_h,get_w);
   }
 
+  // ----------------------- COMMUNICATION FUNCTIONS ---------------------
+
   /*
-  Method to print the map of the ship
+  Function to communicate with an allie. Indeed, we get knowlodge from this one.
+  This allie send the value of his map for the position (x,y).
+  We can update our map.
   */
-  function printMap() public view{
-    for (uint x; x<h; x+=1){
-      for (uint y; y<w; y+=1){
-        console.log("(%s,%s)=%s",x,y,map[x][y]);
-      }
+  function communicate(uint x, uint y, uint value) public{
+    
+    // the position of an allie
+    if (value == 1){
+      map[x][y] = 3;
+      availablePosition = availablePosition - 1;
+    }
+
+    // the position of a fire of an allie
+    if (value == 2 && map[x][y] == 0){
+      map[x][y] = 2;
+      availablePosition = availablePosition - 1;
     }
   }
 
-  /*
-  Method to inform if we have to reset the ship's map,
-  --> search if there is a empty case (case == 0)
-  Return a bool --> True if there is any empty case
+  // ----------------------- CHANGE POSITION FUNCTION ---------------------
+
+  /* 
+  Method to update a new position for the ship
   */
-  function haveToReset() private view returns (bool){
-    for (uint x; x<h; x+=1){
-      for (uint y; y<w; y+=1){
-        if (map[x][y] == 0){
-          return false;
-        }
-      }
-    }
-    return true;
+  function newPlace(uint prev_x, uint prev_y, uint n_x, uint n_y) public{
+    map[prev_x][prev_y] = 0;
+    //console.log("new position (%s,%s)",n_x,n_y);
+    map[n_x][n_y] = 1;
   }
+
+  // ----------------------- RESET MAP FUNCTIONS ---------------------
 
   /* 
   Metho to reset the ship's map except his position
@@ -140,29 +150,17 @@ contract Ship {
         }
       }
     }
+    availablePosition = (h * w) - 1;
   }
 
   /*
   Method to check if the ship must to reset his map and reset it 
   */
   function checkReset(uint index) public{
-    if (haveToReset()){
+    if (availablePosition == 0){
       console.log("ship %s have to reset",index);
       reset();
     }
-  }
-
-  /* 
-  Method to update a new position for the ship
-  */
-  function newPlace(uint n_x, uint n_y) public{
-    for (uint x; x<h; x+=1){
-      for (uint y; y<w; y+=1){
-        map[x][y] = 0;
-      }
-    }
-    console.log("new position (%s,%s)",n_x,n_y);
-    map[n_x][n_y] = 1;
   }
 }
 

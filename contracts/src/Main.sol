@@ -45,38 +45,6 @@ contract Main {
     emit Size(game.width, game.height);
   }
 
-  /*
-  Function to communicate with allies ships in order to 
-  get their knowledgments (their maps)
-  */
-  function communication(uint i) private{
-    Ship ship = Ship(ships[i]); // get the ship at the index i
-    address owner = owners[i]; // get the owner of this ship
-
-    // search allies of this ship --> same owner
-    for (uint j = 1; j < index; j++) {
-      // dead allie --> useless
-      if (game.xs[j] < 0) continue;
-
-      // if we find an allie
-      if (i != j && owners[j] == owner){
-        // console.log("Communication : %s <--> %s (allie)",i,j);
-        Ship allie = Ship(ships[j]); // get the allie ship
-        
-        // get information of all his map
-        for (uint x; x<game.height; x+=1){
-          for (uint y; y<game.width; y+=1){
-            uint value = allie.getValue(x,y); // get value for the position (x,y)
-            if (value > 0){
-              // console.log("Allie informs : (%s,%s)=%s",x,y,value);
-            }
-            ship.communicate(x,y,value); // communicate --> update ship's map
-          }
-        }
-      }
-    }
-  }
-
   function register() external {
     address ship = address(new Ship(msg.sender, index)); // get address of the new ship
     require(count[msg.sender] < 2, "Only two ships");
@@ -100,17 +68,24 @@ contract Main {
     for (uint i = 1; i < index; i++) {
       if (game.xs[i] < 0) continue;
       turns[i] = turns[i] - 1;
-      //communication(i); // the ship at index i communicate
+      
       Ship ship = Ship(ships[i]);
-      //ship.printMap();
-      //ship.checkReset(i);
+
+      //reset map of the ship if the map is full
+      ship.checkReset(i);
+
+      // fire
       (uint x, uint y) = ship.fire();
       console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
+      
+      // check if we touched someone
       if (game.board[x][y] > 0) {
         console.log("TOUCHE");
         touched[game.board[x][y]] = true;
       }
     }
+
+    // eliminate ships touched
     for (uint i = 0; i < index; i++) {
       if (touched[i]) {
         emit Touched(i, uint(game.xs[i]), uint(game.ys[i]));
@@ -192,9 +167,67 @@ contract Main {
             y = newPlace / game.width % game.height;
           }
         }
-        ship.newPlace(x, y); // update the map of the ship
+        ship.newPlace(prev_x,prev_y,x, y); // update the map of the ship
         emit Moved(uint(i), prev_x, prev_y, owners[i], uint(x), uint(y)); // to update the frontend
       }
+    }
+  }
+
+  /*
+  function return the number of ships of a player in play
+  */ 
+  function numberShipInPlay() private view returns (uint){
+    uint counter_ship = 0;
+    for (uint i = 0; i < index; i++) {
+      if (game.xs[i] < 0) continue;
+      
+      // get ships of the player
+      if (owners[i] == msg.sender){
+        counter_ship += 1;
+      }
+    }
+    return counter_ship;
+  }
+
+  /*
+  Function to communicate with allies ships in order to 
+  get their knowledgments (their maps)
+  */
+  function communication() external{
+    require(count[msg.sender] > 0, "do not possess ships");
+    require(numberShipInPlay() >= 2, "need at least 2 ships");
+    uint[] memory ships_of_owner = new uint[](index);
+    uint counter = 0;
+    
+    // search allies
+    for (uint i = 0; i < index; i++) {
+      if (game.xs[i] < 0) continue;
+      
+      // get ships of the player
+      if (owners[i] == msg.sender){
+        ships_of_owner[counter] = i;
+        counter += 1;
+      }
+    }
+
+    // communication between allies
+    for (uint i = 0; i < counter; i++) {
+      Ship ship = Ship(ships[ships_of_owner[i]]); // get the ship at the index ships_of_owner[i]
+      for (uint j = 0; j < counter; j++) {
+        if (i != j){
+          Ship allie = Ship(ships[ships_of_owner[j]]); // get the ship at the index ships_of_owner[j]
+          // get information of all his map
+          for (uint x; x<game.height; x+=1){
+            for (uint y; y<game.width; y+=1){
+              uint value = allie.getValue(x,y); // get value for the position (x,y)
+              ship.communicate(x,y,value); // communicate --> update ship's map
+            }
+          }
+        }
+      }
+
+      //reset map of the ship if the map is full
+      ship.checkReset(i);
     }
   }
 }
