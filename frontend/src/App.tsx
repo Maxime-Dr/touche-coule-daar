@@ -173,6 +173,7 @@ const Buttons = ({ wallet }: { wallet: ReturnType<typeof useWallet> }) => {
   return (
     <div style={{ display: 'flex', gap: 5, padding: 5 }}>
       <button onClick={() => wallet?.contract.changePosition()}>Change Position</button> 
+      <button onClick={() => wallet?.contract.communication()}>Communicate</button> 
       <button onClick={() => wallet?.contract.register()}>Register</button> 
       <button onClick={next}>Turn</button>
     </div>
