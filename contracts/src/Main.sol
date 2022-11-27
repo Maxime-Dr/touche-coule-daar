@@ -55,7 +55,7 @@ contract Main {
     ships[index] = ship;
     owners[index] = msg.sender;
     (uint x, uint y) = placeShip(index);
-    console.log("Register --> id:%s x:%s, y%s",index,x,y);
+    //console.log("Register --> id:%s x:%s, y%s",index,x,y);
     Ship(ships[index]).update(x, y);
     emit Registered(index, msg.sender, x, y);
     used[ship] = true;
@@ -76,11 +76,11 @@ contract Main {
 
       // fire
       (uint x, uint y) = ship.fire();
-      console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
+      //console.log("FIRE --> id:%s x:%s, y%s",i,x,y);
       
       // check if we touched someone
       if (game.board[x][y] > 0) {
-        console.log("TOUCHE");
+        //console.log("TOUCHE");
         touched[game.board[x][y]] = true;
       }
     }
@@ -116,10 +116,10 @@ contract Main {
   /* 
   function to create a ship and returns address of this new one
   */
-  // function createShip() external returns (address){
-  //   Ship ship = new Ship(msg.sender, index);
-  //   return address(ship);
-  // }
+  //  function createShip() external returns (address){
+  //    Ship ship = new Ship(msg.sender, index);
+  //    return address(ship);
+   // }
 
   /*
   function to check if the player can change position of this ship
